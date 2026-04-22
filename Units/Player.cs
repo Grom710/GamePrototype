@@ -1,7 +1,7 @@
-﻿using GamePrototype.Items; // <-- НОВОЕ: Для интерфейса IUsable
+﻿using GamePrototype.Items; 
 using GamePrototype.Items.EconomicItems;
 using GamePrototype.Items.EquipItems;
-using GamePrototype.Units; // Для базового класса Unit
+using GamePrototype.Units; 
 using GamePrototype.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,8 +18,6 @@ namespace GamePrototype.Units
         {
         }
 
-        // --- НОВЫЙ МЕТОД: Использовать предмет из инвентаря ---
-        // Этот метод вызывается из GameLoop, когда игрок выбирает действие "Использовать".
         public void UseInventoryItem(int itemIndex)
         {
             if (itemIndex < 0 || itemIndex >= Inventory.Items.Count)
@@ -30,16 +28,10 @@ namespace GamePrototype.Units
 
             var itemToUse = Inventory.Items[itemIndex];
 
-            // Проверяем, реализует ли предмет интерфейс IUsable.
-            // Теперь это может быть любой предмет, а не только EconomicItem.
             if (itemToUse is IUsable usableItem)
             {
-                // Вызываем метод Use. Мы передаем 'this' (самого себя), чтобы предмет
-                // мог взаимодействовать с игроком (например, починить его оружие).
                 usableItem.Use(this);
 
-                // После использования удаляем предмет из инвентаря.
-                // Это стандартное поведение для большинства одноразовых предметов.
                 Inventory.TryRemove(itemToUse);
             }
             else
@@ -48,38 +40,35 @@ namespace GamePrototype.Units
             }
         }
 
-        // --- ОБНОВЛЕННЫЙ МЕТОД: Обработка после боя ---
-        // Теперь этот метод не содержит логику для конкретных предметов.
-        // Он просто дает команду "использоваться" всем предметам, которые это умеют.
         public override void HandleCombatComplete()
         {
-            // Создаем копию списка, чтобы безопасно удалять элементы во время цикла.
             var itemsToProcess = Inventory.Items.ToList();
 
             foreach (var item in itemsToProcess)
             {
-                // Если предмет можно использовать...
                 if (item is IUsable usableItem)
                 {
-                    // ...он использует сам себя на этом игроке.
                     usableItem.Use(this);
 
-                    // И после этого исчезает из инвентаря.
                     Inventory.TryRemove(item);
                 }
             }
         }
-
-        // --- МЕТОД ВЫПОЛНЕНИЯ ДЕЙСТВИЯ ПРЕДМЕТА ---
-        // Этот метод больше НЕ НУЖЕН!
-        // Вся логика теперь находится внутри самих классов предметов (HealthPotion, Grindstone).
-        // Мы удаляем его, чтобы не дублировать код.
-        /*
-        private void UseEconomicItem(EconomicItem economicItem)
+        /// <param name="amount"
+        public void RepairWeaponInInventory(uint amount)
         {
-            // Старая логика отсюда перемещена в классы HealthPotion и Grindstone.
+            var weapon = Inventory.Items.OfType<Weapon>().FirstOrDefault();
+
+            if (weapon != null)
+            {
+                weapon.Repair(amount);
+                Console.WriteLine($"Вы восстановили {amount} прочности оружию {weapon.Name}.");
+            } }
+
+public List<Item> GetInventoryItemsForDisplay()
+        {
+            return new List<Item>(Inventory.Items);
         }
-        */
 
         protected override uint CalculateAppliedDamage(uint damage)
         {

@@ -90,35 +90,35 @@ namespace GamePrototype.Game
 
         private void UseItemFromInventory()
         {
-            var inventory = _player.Inventory;
-
-            if (inventory.Items.Count == 0)
+            if (_player is Player player)
             {
-                Console.WriteLine("Ваш инвентарь пуст!");
-                return;
-            }
+                var displayItems = player.GetInventoryItemsForDisplay();
 
-            Console.WriteLine("\nВаш инвентарь:");
-
-            for (int i = 0; i < inventory.Items.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. {inventory.Items[i].Name}"); 
-            }
-
-            Console.Write("Введите номер предмета для использования: ");
-
-            if (int.TryParse(Console.ReadLine(), out int itemNumber) && itemNumber > 0 && itemNumber <= inventory.Items.Count)
-            {
-                int itemIndex = itemNumber - 1;
-
-                if (_player is Player player)
+                if (displayItems.Count == 0)
                 {
+                    Console.WriteLine("Ваш инвентарь пуст!");
+                    return;
+                }
+
+                Console.WriteLine("\nВаш инвентарь:");
+
+                for (int i = 0; i < displayItems.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {displayItems[i].Name}");
+                }
+
+                Console.Write("Введите номер предмета для использования: ");
+
+                if (int.TryParse(Console.ReadLine(), out int itemNumber) && itemNumber > 0 && itemNumber <= displayItems.Count)
+                {
+                    int itemIndex = itemNumber - 1;
+
                     player.UseInventoryItem(itemIndex);
                 }
-            }
-            else
-            {
-                Console.WriteLine("Неверный номер предмета.");
+                else
+                {
+                    Console.WriteLine("Неверный номер предмета.");
+                }
             }
         }
 
@@ -140,14 +140,21 @@ namespace GamePrototype.Game
                 if (_combatManager.StartCombat(_player, currentRoom.Enemy) == _player)
                 {
                     Console.WriteLine("Вы победили!");
-                    _player.HandleCombatComplete(); 
+
+                    _player.HandleCombatComplete();
+
                     LootEnemy(currentRoom.Enemy);
                 }
                 else
                 {
-                    success = false;
+                    success = false; 
                 }
             }
+        }
+
+        private void LootEnemy(Unit enemy)
+        {
+            _player.AddItemsFromUnitToInventory(enemy);
         }
 
         private void DisplayRouteOptions(DungeonRoom currentRoom)

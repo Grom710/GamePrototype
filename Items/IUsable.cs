@@ -1,6 +1,4 @@
-﻿// GamePrototype/Items/IUsable.cs
-
-using GamePrototype.Units;
+﻿using GamePrototype.Units;
 
 namespace GamePrototype.Items
 {
