@@ -2,7 +2,7 @@
 using GamePrototype.Dungeon;
 using GamePrototype.Units;
 using GamePrototype.Utils;
-using System; // Убедитесь, что этот using есть для работы с Console
+using System; 
 
 namespace GamePrototype.Game
 {
@@ -43,8 +43,6 @@ namespace GamePrototype.Game
                     return;
                 }
 
-                // --- НОВОЕ МЕНЮ ДЕЙСТВИЙ ИГРОКА ---
-                // Цикл меню, чтобы игрок мог несколько раз использовать предметы перед уходом из комнаты
                 while (true)
                 {
                     DisplayPlayerMenu();
@@ -52,13 +50,11 @@ namespace GamePrototype.Game
 
                     if (input == "1")
                     {
-                        // Игрок выбрал "Использовать предмет"
                         UseItemFromInventory();
                     }
                     else if (input == "2")
                     {
-                        // Игрок выбрал "Продолжить путь"
-                        break; // Выходим из цикла меню и идем в следующую комнату
+                        break; 
                     }
                     else
                     {
@@ -85,7 +81,6 @@ namespace GamePrototype.Game
             Console.WriteLine(_player.ToString());
         }
 
-        // --- НОВЫЙ МЕТОД: Отображение меню действий ---
         private void DisplayPlayerMenu()
         {
             Console.WriteLine("\n--- Что вы хотите сделать? ---");
@@ -93,7 +88,6 @@ namespace GamePrototype.Game
             Console.WriteLine("2. Продолжить путь");
         }
 
-        // --- НОВЫЙ МЕТОД: Логика использования предмета ---
         private void UseItemFromInventory()
         {
             var inventory = _player.Inventory;
@@ -106,21 +100,17 @@ namespace GamePrototype.Game
 
             Console.WriteLine("\nВаш инвентарь:");
 
-            // Выводим список предметов с номерами
             for (int i = 0; i < inventory.Items.Count; i++)
             {
-                Console.WriteLine($"{i + 1}. {inventory.Items[i].Name}"); // Нумеруем с 1 для удобства игрока
+                Console.WriteLine($"{i + 1}. {inventory.Items[i].Name}"); 
             }
 
             Console.Write("Введите номер предмета для использования: ");
 
-            // Парсим ввод пользователя. Вычитаем 1, чтобы получить индекс списка (который начинается с 0).
             if (int.TryParse(Console.ReadLine(), out int itemNumber) && itemNumber > 0 && itemNumber <= inventory.Items.Count)
             {
                 int itemIndex = itemNumber - 1;
 
-                // Приводим Unit к Player, так как метод UseInventoryItem есть только у Player.
-                // Это безопасно, так как в игре управляет только игрок.
                 if (_player is Player player)
                 {
                     player.UseInventoryItem(itemIndex);
@@ -150,7 +140,7 @@ namespace GamePrototype.Game
                 if (_combatManager.StartCombat(_player, currentRoom.Enemy) == _player)
                 {
                     Console.WriteLine("Вы победили!");
-                    _player.HandleCombatComplete(); // Используем зелья после боя
+                    _player.HandleCombatComplete(); 
                     LootEnemy(currentRoom.Enemy);
                 }
                 else
