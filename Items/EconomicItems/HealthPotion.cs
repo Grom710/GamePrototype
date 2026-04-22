@@ -2,11 +2,13 @@
 {
     public sealed class HealthPotion : EconomicItem
     {
-        public uint HealthRestore => 7;
-        public override bool Stackable => false;
+        public uint HealthRestore { get; }
 
-        public HealthPotion(string name) : base(name)
+        public HealthPotion(uint healthRestore, string name) : base(name)
         {
-        }      
+            HealthRestore = healthRestore;
+        }
+
+        public override bool Stackable => false;
     }
 }

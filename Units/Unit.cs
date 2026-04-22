@@ -9,7 +9,7 @@ namespace GamePrototype.Units
         private uint _maxHealth;
         protected uint BaseDamage;
         protected Inventory Inventory;
-        
+
         public string Name { get; private set; }
         public uint Health
         {
@@ -19,7 +19,7 @@ namespace GamePrototype.Units
 
         public uint MaxHealth => _maxHealth;
 
-        protected Unit(string name, uint health, uint maxHealth, uint baseDamage) 
+        protected Unit(string name, uint health, uint maxHealth, uint baseDamage)
         {
             Name = name;
             _health = health;
@@ -28,44 +28,43 @@ namespace GamePrototype.Units
             Inventory = new Inventory(INVENTORY_SIZE);
         }
 
+        
         public void ApplyDamage(uint damage)
         {
-            var damageApplied = CalculateAppliedDamage(damage);
-            if (_health < damageApplied || (_health - damageApplied) <= 0) 
-            {
-                _health = 0;
-            }
-            else 
-            {
-                _health -= damageApplied;
-            }
-            
+            uint damageApplied = CalculateAppliedDamage(damage);
+
+            _health = Math.Min(_health, damageApplied) == damageApplied ? 0 : _health - damageApplied;
+
             DamageReceiveHandler();
         }
 
         protected abstract uint CalculateAppliedDamage(uint damage);
-        
-        protected virtual void DamageReceiveHandler() { }
-        
+
+        protected virtual void DamageReceiveHandler()
+        {
+            
+        }
+
         public abstract uint GetUnitDamage();
 
         public abstract void HandleCombatComplete();
 
-        public virtual void AddItemToInventory(Item item) 
+        public virtual void AddItemToInventory(Item item)
         {
-            if (!Inventory.TryAdd(item)) 
+            if (!Inventory.TryAdd(item))
             {
-                Console.WriteLine($"Inventory of {Name} is full");
+                Console.WriteLine($"Инвентарь {Name} переполнен.");
             }
         }
 
-        public void AddItemsFromUnitToInventory(Unit unit)
+        public void AddItemsFromUnitToInventory(Unit defeatedUnit)
         {
-            for (int i = 0; i < unit.Inventory.Items.Count; i++) 
+            foreach (var lootItem in defeatedUnit.Inventory.Items)
             {
-                if (!Inventory.TryAdd(unit.Inventory.Items[i])) 
+                if (!Inventory.TryAdd(lootItem))
                 {
-                    //inventory is full
+                   
+                    Console.WriteLine($"Инвентарь {Name} переполнен, часть лута подобрать не удалось.");
                     return;
                 }
             }

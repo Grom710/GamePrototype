@@ -2,6 +2,7 @@
 using GamePrototype.Dungeon;
 using GamePrototype.Units;
 using GamePrototype.Utils;
+using System; // Убедитесь, что этот using есть для работы с Console
 
 namespace GamePrototype.Game
 {
@@ -10,8 +11,8 @@ namespace GamePrototype.Game
         private Unit _player;
         private DungeonRoom _dungeon;
         private readonly CombatManager _combatManager = new CombatManager();
-        
-        public void StartGame() 
+
+        public void StartGame()
         {
             Initialize();
             Console.WriteLine("Entering the dungeon");
@@ -32,24 +33,48 @@ namespace GamePrototype.Game
         private void StartGameLoop()
         {
             var currentRoom = _dungeon;
-            
-            while (currentRoom.IsFinal == false) 
+
+            while (currentRoom.IsFinal == false)
             {
                 StartRoomEncounter(currentRoom, out var success);
-                if (!success) 
+                if (!success)
                 {
                     Console.WriteLine("Game over!");
                     return;
                 }
-                DisplayRouteOptions(currentRoom);
-                while (true) 
+
+                // --- НОВОЕ МЕНЮ ДЕЙСТВИЙ ИГРОКА ---
+                // Цикл меню, чтобы игрок мог несколько раз использовать предметы перед уходом из комнаты
+                while (true)
                 {
-                    if (Enum.TryParse<Direction>(Console.ReadLine(), out var direction) ) 
+                    DisplayPlayerMenu();
+                    string input = Console.ReadLine();
+
+                    if (input == "1")
+                    {
+                        // Игрок выбрал "Использовать предмет"
+                        UseItemFromInventory();
+                    }
+                    else if (input == "2")
+                    {
+                        // Игрок выбрал "Продолжить путь"
+                        break; // Выходим из цикла меню и идем в следующую комнату
+                    }
+                    else
+                    {
+                        Console.WriteLine("Неверный ввод. Введите 1 или 2.");
+                    }
+                }
+
+                DisplayRouteOptions(currentRoom);
+                while (true)
+                {
+                    if (Enum.TryParse<Direction>(Console.ReadLine(), out var direction))
                     {
                         currentRoom = currentRoom.Rooms[direction];
                         break;
                     }
-                    else 
+                    else
                     {
                         Console.WriteLine("Wrong direction!");
                     }
@@ -60,42 +85,90 @@ namespace GamePrototype.Game
             Console.WriteLine(_player.ToString());
         }
 
+        // --- НОВЫЙ МЕТОД: Отображение меню действий ---
+        private void DisplayPlayerMenu()
+        {
+            Console.WriteLine("\n--- Что вы хотите сделать? ---");
+            Console.WriteLine("1. Использовать предмет из инвентаря");
+            Console.WriteLine("2. Продолжить путь");
+        }
+
+        // --- НОВЫЙ МЕТОД: Логика использования предмета ---
+        private void UseItemFromInventory()
+        {
+            var inventory = _player.Inventory;
+
+            if (inventory.Items.Count == 0)
+            {
+                Console.WriteLine("Ваш инвентарь пуст!");
+                return;
+            }
+
+            Console.WriteLine("\nВаш инвентарь:");
+
+            // Выводим список предметов с номерами
+            for (int i = 0; i < inventory.Items.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {inventory.Items[i].Name}"); // Нумеруем с 1 для удобства игрока
+            }
+
+            Console.Write("Введите номер предмета для использования: ");
+
+            // Парсим ввод пользователя. Вычитаем 1, чтобы получить индекс списка (который начинается с 0).
+            if (int.TryParse(Console.ReadLine(), out int itemNumber) && itemNumber > 0 && itemNumber <= inventory.Items.Count)
+            {
+                int itemIndex = itemNumber - 1;
+
+                // Приводим Unit к Player, так как метод UseInventoryItem есть только у Player.
+                // Это безопасно, так как в игре управляет только игрок.
+                if (_player is Player player)
+                {
+                    player.UseInventoryItem(itemIndex);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неверный номер предмета.");
+            }
+        }
+
+
         private void StartRoomEncounter(DungeonRoom currentRoom, out bool success)
         {
             success = true;
-            if (currentRoom.Loot != null) 
+
+            if (currentRoom.Loot != null)
             {
                 _player.AddItemToInventory(currentRoom.Loot);
+                Console.WriteLine($"Вы нашли: {currentRoom.Loot.Name}");
             }
-            if (currentRoom.Enemy != null) 
+
+            if (currentRoom.Enemy != null)
             {
+                Console.WriteLine($"Вы встретили врага: {currentRoom.Enemy.Name}");
+
                 if (_combatManager.StartCombat(_player, currentRoom.Enemy) == _player)
                 {
-                    _player.HandleCombatComplete();
+                    Console.WriteLine("Вы победили!");
+                    _player.HandleCombatComplete(); // Используем зелья после боя
                     LootEnemy(currentRoom.Enemy);
                 }
-                else 
+                else
                 {
                     success = false;
                 }
-            }
-
-            void LootEnemy(Unit enemy)
-            {
-                _player.AddItemsFromUnitToInventory(enemy);
             }
         }
 
         private void DisplayRouteOptions(DungeonRoom currentRoom)
         {
-            Console.WriteLine("Where to go?");
+            Console.WriteLine("\nКуда идти дальше?");
             foreach (var room in currentRoom.Rooms)
             {
-                Console.Write($"{room.Key} - {(int) room.Key}\t");
+                Console.Write($"{room.Key} - {(int)room.Key}\t");
             }
         }
-
-        
-        #endregion
     }
+    #endregion
 }
+
